@@ -20,7 +20,7 @@
    pip install -r requirements.txt
    ```
 
-### 4. Створіть файл **proxies.txt** та внесіть проксі для перевірки. Підтримуються формати:
+### 4. Створіть файл **proxies.txt** якщо його нема та внесіть проксі для перевірки. Підтримуються формати:
    - `ip:port:login:pass`
    - `login:pass@ip:port`
    - `http://login:pass@ip:port`

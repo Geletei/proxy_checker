@@ -1,0 +1,15 @@
+*.pyc
+__pycache__/
+.DS_Store
+.idea/
+
+.env
+.venv
+venv/
+env/
+ENV/
+
+proxies.txt
+good_proxies.txt
+bad_proxies.txt
+country_report.txt

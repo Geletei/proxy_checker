@@ -4,22 +4,19 @@ import aiohttp
 import platform
 from datetime import datetime
 from tabulate import tabulate
-from settings import proxy_type, do_report, country, multi
+from settings import proxy_type, do_report, country
 
 clear_text = 'cls' if platform.system().lower() == 'windows' else 'clear'
 
 info = {}
-good_proxies = []
-bad_proxies = []
-country_report = []
 
 
 async def print_data():
     os.system(clear_text)
-    headers = ['#', f'Work', 'IP', 'Timeout', 'Country', 'City']
+    headers = ['#', f'Work', '       IP', 'Timeout', 'Country', 'City']
     table = [[k, i['work'], i['ip'], i['timeout'], i['country'], i['city']] for k, i in info.items()]
 
-    final_table = tabulate(table, headers, tablefmt='mixed_outline', stralign='center', numalign='center')
+    final_table = tabulate(table, headers, tablefmt='mixed_outline', colalign=('center', 'center', 'left', 'center', 'center', 'center'))
     print(final_table)
 
 
@@ -76,43 +73,48 @@ async def checker(n, data):
                 result = await response.json()
                 if result['status'] == 'success':
                     info[n]['work'] = '🍏\u200a'
-                    good_proxies.append(data['base_format'])
                     info[n]['ip'] = result['query']
                     info[n]['country'] = result['countryCode']
-                    if country:
-                        if result['countryCode'] == country:
-                            country_report.append(data['base_format'])
                     info[n]['city'] = result['city']
                 else:
                     info[n]['work'] = '🍎\u200a'
-                    bad_proxies.append(data['base_format'])
     except Exception:
         info[n]['work'] = '🍎\u200a'
-        bad_proxies.append(data['base_format'])
     time_end = datetime.now()
     time_res = time_end - time_start
-    print()
     info[n]['timeout'] = str(round(time_res.total_seconds(), 3))
     await print_data()
+
+
+async def report():
+    good_proxies = []
+    bad_proxies = []
+    for i, data in info.items():
+        if '🍏' in data['work']:
+            good_proxies.append(data['base_format'])
+        elif '🍎' in data['work']:
+            bad_proxies.append(data['base_format'])
+
+    with open('good_proxies.txt', 'w') as file:
+        file.write('\n'.join(good_proxies))
+
+    with open('bad_proxies.txt', 'w') as file:
+        file.write('\n'.join(bad_proxies))
 
 
 async def main():
     await read_proxies()
     await print_data()
-    if multi:
-        await asyncio.gather(*[checker(n, data) for n, data in info.items()])
-    else:
-        for n, data in info.items():
-            await checker(n, data)
+    await asyncio.gather(*[checker(n, data) for n, data in info.items()])
 
     if do_report:
-        with open('good_proxies.txt', 'w') as file:
-            file.write('\n'.join(good_proxies))
-
-        with open('bad_proxies.txt', 'w') as file:
-            file.write('\n'.join(bad_proxies))
+        await report()
 
     if country:
+        country_report = []
+        for i, data in info.items():
+            if data['country'] == country:
+                country_report.append(data['base_format'])
         with open('country_report.txt', 'w') as file:
             file.write('\n'.join(country_report))
 
